@@ -1,0 +1,6 @@
+{
+  "name": "Darkstar Auctionhouse Stockist - Node.js Web Application",
+  "description": "Stocks the darkstar auction house.",
+  "repository": "https://github.com/nigelbritton/darkstar-auctionhouse-stockist",
+  "keywords": ["node", "express", "handlebars"]
+}
