@@ -23,8 +23,8 @@ let applicationStatus = {
 };
 
 let app = express(),
-    expressApplicationLocalFunctions = require('./middleware/expressApplicationLocalFunctions'),
-    routingPathsMiddleware = require('./middleware/routingPathsMiddleware'),
+    // expressApplicationLocalFunctions = require('./middleware/expressApplicationLocalFunctions'),
+    // routingPathsMiddleware = require('./middleware/routingPathsMiddleware'),
     dataContent = require('./lib/dataContent');
 //indexRouter = require('./routes/index')(applicationStatus),
 //apiRouter = require('./routes/api')(applicationStatus);
@@ -43,7 +43,7 @@ app.use(cookieParser());
 app.use(compression());
 app.use('/static/', express.static(path.join(__dirname, 'public'), { maxAge: 3600 }));
 
-app.locals = expressApplicationLocalFunctions;
+// app.locals = expressApplicationLocalFunctions;
 
 app.use(function (req, res, next) {
     res.removeHeader("x-powered-by");
@@ -116,7 +116,7 @@ let playerId = process.env.PLAYER_ID || 10000;
 let auctionList = [];
 let auctionItemAvailable = [];
 
-dataContent.query('select *, (BaseSell * 8) as RRP from item_basic where aH > 0 AND aH <= 32 AND NoSale = 0 and BaseSell > 0;')
+dataContent.query('select *, (BaseSell * 8) as RRP from item_basic where BaseSell > 100 AND aH > 0 AND aH <= 32 AND NoSale = 0 and BaseSell > 0;')
     .then(function (result) {
         auctionItemAvailable = result;
         stockAuctionHouse();
@@ -127,15 +127,16 @@ dataContent.query('select *, (BaseSell * 8) as RRP from item_basic where aH > 0 
     });
 
 function stockAuctionHouse() {
+    auctionList = [];
     for (let i = 0; i < 10; i++) {
         let itemPicked = Math.floor(Math.random() * auctionItemAvailable.length);
         auctionList.push({
             itemid: auctionItemAvailable[itemPicked].itemid,
-            stack: auctionItemAvailable[itemPicked].stackSize,
+            stack: (auctionItemAvailable[itemPicked].stackSize == 1 ? 0 : auctionItemAvailable[itemPicked].stackSize),
             seller: playerId,
             seller_name: 'Zeus',
             date: Math.floor(new Date().getTime() / 1000), // this should match c++ time() object
-            price: auctionItemAvailable[itemPicked].RRP
+            price: Math.floor(auctionItemAvailable[itemPicked].BaseSell * ((Math.random() * 5) + 2))
         });
     }
 
@@ -146,9 +147,9 @@ function stockAuctionHouse() {
         dataContent.insert('auction_house', auctionList[i]);
     }
 
-    console.log('Zeus is placed some items on the auction house.');
+    console.log('Zeus has placed some items on the auction house.');
 
     setTimeout(function () {
         stockAuctionHouse();
-    }, 120000);
+    }, 60000);
 };
