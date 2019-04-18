@@ -112,35 +112,43 @@ app.listen(applicationStatus.serverPort, function () {
  * set DATABASE_PASSWORD=
  */
 
-let playerId = 10000;
+let playerId = process.env.PLAYER_ID || 10000;
 let auctionList = [];
 let auctionItemAvailable = [];
 
-dataContent.query('select *, (BaseSell * 8) as RRP from item_basic where aH > 0 AND NoSale = 0 and BaseSell > 0;')
+dataContent.query('select *, (BaseSell * 8) as RRP from item_basic where aH > 0 AND aH <= 32 AND NoSale = 0 and BaseSell > 0;')
     .then(function (result) {
         auctionItemAvailable = result;
-
-        setInterval(function () {
-            for (let i = 0; i < 5; i++) {
-                let itemPicked = Math.floor(Math.random() * auctionItemAvailable.length);
-                auctionList.push({
-                    itemid: auctionItemAvailable[itemPicked].itemid,
-                    stack: auctionItemAvailable[itemPicked].stackSize,
-                    seller: playerId,
-                    seller_name: 'Zeus',
-                    price: auctionItemAvailable[itemPicked].RRP
-                });
-            }
-
-            for (let i = 0; i < auctionList.length; i++) {
-                dataContent.insert('auction_house', auctionList[i]);
-            }
-
-            console.log('Zeus is placed some items on the auction house.');
-        }, 60000);
-
+        stockAuctionHouse();
     })
     .catch(function (err) {
         console.log(err);
         process.exit();
     });
+
+function stockAuctionHouse() {
+    for (let i = 0; i < 10; i++) {
+        let itemPicked = Math.floor(Math.random() * auctionItemAvailable.length);
+        auctionList.push({
+            itemid: auctionItemAvailable[itemPicked].itemid,
+            stack: auctionItemAvailable[itemPicked].stackSize,
+            seller: playerId,
+            seller_name: 'Zeus',
+            date: Math.floor(new Date().getTime() / 1000), // this should match c++ time() object
+            price: auctionItemAvailable[itemPicked].RRP
+        });
+    }
+
+    for (let i = 0; i < auctionList.length; i++) {
+
+        // update insert method to allow for an array; bulk sql inserts
+
+        dataContent.insert('auction_house', auctionList[i]);
+    }
+
+    console.log('Zeus is placed some items on the auction house.');
+
+    setTimeout(function () {
+        stockAuctionHouse();
+    }, 120000);
+};
