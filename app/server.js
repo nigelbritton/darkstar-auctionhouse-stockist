@@ -8,6 +8,7 @@ let cluster = require('cluster');
 let debug = require('debug')('darkstar-auctionhouse-stockist');
 let numCPUs = require('os').cpus().length;
 
+const MULTI_SERVER_CORE = process.env.MULTI_SERVER_CORE || false;
 let applicationStatus = {
     version: require('../package.json').version,
     name: require('../package.json').name
@@ -22,12 +23,17 @@ if (cluster.isMaster) {
         debug(applicationStatus.name + ' server process killed [' + worker.process.pid + ']');
         cluster.fork();
     });
-    // Fork workers.
-    for (let i = 0; i < numCPUs; i++) {
-        setTimeout(function () {
-            cluster.fork();
-        }, applicationStatusDelayedLaunch);
-        applicationStatusDelayedLaunch += 1000;
+
+    if (MULTI_SERVER_CORE === true) {
+        // Fork workers.
+        for (let i = 0; i < numCPUs; i++) {
+            setTimeout(function () {
+                cluster.fork();
+            }, applicationStatusDelayedLaunch);
+            applicationStatusDelayedLaunch += 1000;
+        }
+    } else {
+        cluster.fork();
     }
 } else {
     require('./app');

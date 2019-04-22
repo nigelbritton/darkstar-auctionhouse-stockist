@@ -79,7 +79,7 @@ app.use(function (err, req, res, next) {
 
     // render the error page
     res.status(err.status || 500);
-    res.render('error');
+    res.json(res.locals.message);
 });
 
 app.listen(applicationStatus.serverPort, function () {
@@ -151,5 +151,5 @@ function stockAuctionHouse() {
 
     setTimeout(function () {
         stockAuctionHouse();
-    }, 60000);
+    }, 600000);
 };
