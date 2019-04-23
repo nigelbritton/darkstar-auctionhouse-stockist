@@ -8,11 +8,7 @@ let express = require('express'),
     debug = require('debug')('darkstar-auctionhouse-stockist'),
     path = require('path'),
     compression = require('compression'),
-    cookieParser = require('cookie-parser'),
-    createError = require('http-errors'),
-    logger = require('morgan'),
-    expressHandlebars = require('express-handlebars'),
-    hbs = require('hbs');
+    createError = require('http-errors');
 
 let applicationStatus = {
     version: require('../package.json').version,
@@ -23,27 +19,11 @@ let applicationStatus = {
 };
 
 let app = express(),
-    // expressApplicationLocalFunctions = require('./middleware/expressApplicationLocalFunctions'),
-    // routingPathsMiddleware = require('./middleware/routingPathsMiddleware'),
-    dataContent = require('./lib/dataContent');
-//indexRouter = require('./routes/index')(applicationStatus),
-//apiRouter = require('./routes/api')(applicationStatus);
+    auctionBot = require('./lib/auctionBot');
 
-hbs.registerPartials(path.join(__dirname, 'views/partials'));
-
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.engine('hbs', expressHandlebars({ defaultLayout: 'layout', extname: '.hbs', layoutsDir: __dirname + '/views', partialsDir: __dirname + '/views/partials' }));
-app.set('view engine', 'hbs');
-
-app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
 app.use(compression());
-app.use('/static/', express.static(path.join(__dirname, 'public'), { maxAge: 3600 }));
-
-// app.locals = expressApplicationLocalFunctions;
 
 app.use(function (req, res, next) {
     res.removeHeader("x-powered-by");
@@ -56,15 +36,12 @@ app.use(function (req, res, next) {
 });
 
 app.get('/', function (req, res) {
-    res.render('index');
+    res.json({ status: 200, updated: new Date().getTime() });
 });
 
 app.get('/status', function (req, res) {
     res.json({ status: 200, updated: new Date().getTime() });
 });
-
-// app.use('/', indexRouter);
-// app.use('/api', apiRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -79,7 +56,7 @@ app.use(function (err, req, res, next) {
 
     // render the error page
     res.status(err.status || 500);
-    res.json(res.locals.message);
+    res.json({ status: 500, error: err, updated: new Date().getTime() });
 });
 
 app.listen(applicationStatus.serverPort, function () {
@@ -92,14 +69,12 @@ app.listen(applicationStatus.serverPort, function () {
     debug('Started: ' + applicationStatus.started);
     debug('Running environment: ' + applicationStatus.environment);
     debug('Listening on port: ' + applicationStatus.serverPort);
-    debug('View folder: ' + path.join(__dirname, 'views'));
-    debug('Partials folder: ' + path.join(__dirname, 'views/partials'));
-    debug('Public folder: ' + path.join(__dirname, 'public'));
     debug('');
     debug('Application ready and listening... ');
     debug('');
 });
 
+auctionBot.init(process.env.PLAYER_ID);
 
 // need to tidy this up...
 
@@ -110,13 +85,15 @@ app.listen(applicationStatus.serverPort, function () {
  * set DATABASE_NAME=
  * set DATABASE_USER=
  * set DATABASE_PASSWORD=
+ * set PLAYER_ID=
  */
 
 let playerId = process.env.PLAYER_ID || 10000;
+let playerProfile = {};
 let auctionList = [];
 let auctionItemAvailable = [];
 
-dataContent.query('select *, (BaseSell * 8) as RRP from item_basic where BaseSell > 100 AND aH > 0 AND aH <= 32 AND NoSale = 0 and BaseSell > 0;')
+/*dataContent.query('select *, (BaseSell * 8) as RRP from item_basic where BaseSell > 100 AND aH > 0 AND aH <= 32 AND NoSale = 0 and BaseSell > 0;')
     .then(function (result) {
         auctionItemAvailable = result;
         stockAuctionHouse();
@@ -153,3 +130,4 @@ function stockAuctionHouse() {
         stockAuctionHouse();
     }, 600000);
 };
+*/
