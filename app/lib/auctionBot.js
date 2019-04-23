@@ -12,7 +12,7 @@ const dataContent = require('./dataContent');
 
 let AuctionBot = {
     playerId: process.env.PLAYER_ID || 10000,
-    playerName: 'Zeus',
+    playerName: 'PlayerUnknown',
     generatedAuctionCategories: [],
     auctionLootCount: 10,
     auctionLootList: {
@@ -89,7 +89,8 @@ let AuctionBot = {
         37: 10, // Cursed Items
         61: 25, // Automatons
     },
-    init: function (charid) {
+    init: function () {
+        let _self = this;
         dataContent.query('SELECT charname FROM chars WHERE charid = ' + parseInt(AuctionBot.playerId))
             .then(function (result) {
                 if (result.length > 0) {
@@ -98,44 +99,45 @@ let AuctionBot = {
                 // console.log(AuctionBot.playerName);
             })
             .then(function () {
-                let lootGenerated = [];
-                for (let loot in AuctionBot.auctionLootList) {
-                    for (let i = 0; i < AuctionBot.auctionLootList[loot]; i++) {
-                        lootGenerated.push(loot);
-                    }
-                }
-
-                AuctionBot.generatedAuctionCategories = [];
-                for (let i = 0; i < AuctionBot.auctionLootCount; i++) {
-                    let lootPicked = Math.floor(Math.random() * lootGenerated.length);
-                    AuctionBot.generatedAuctionCategories.push(lootGenerated[lootPicked]);
-                }
-
-                // console.log(AuctionBot.generatedAuctionCategories);
-            })
-            .then(function () {
-
-                for (let i = 0; i < AuctionBot.generatedAuctionCategories.length; i++) {
-                    let auctionItemQuery = 'select *, (BaseSell * 8) as RRP from item_basic where aH in (' + AuctionBot.generatedAuctionCategories[i] + ') AND NoSale = 0 and BaseSell > 0;';
-                    // console.log(AuctionBot.generatedAuctionCategories[i]);
-                    // console.log(auctionItemQuery);
-
-                    dataContent.query(auctionItemQuery)
-                        .then(function (auctionItemAvailable) {
-                            AuctionBot.stockAuctionHouse(auctionItemAvailable);
-                        })
-                        .catch(function (err) {
-                            console.log(err);
-                        });
-
-                }
-
+                _self.stockRefreshCycle();
             })
             .catch(function (err) {
                 console.log(err);
             });
     },
+    stockRefreshCycle: function () {
+        let lootGenerated = [];
+        for (let loot in AuctionBot.auctionLootList) {
+            for (let i = 0; i < AuctionBot.auctionLootList[loot]; i++) {
+                lootGenerated.push(loot);
+            }
+        }
+
+        AuctionBot.generatedAuctionCategories = [];
+        for (let i = 0; i < AuctionBot.auctionLootCount; i++) {
+            let lootPicked = Math.floor(Math.random() * lootGenerated.length);
+            AuctionBot.generatedAuctionCategories.push(lootGenerated[lootPicked]);
+        }
+
+        // console.log(AuctionBot.generatedAuctionCategories);
+
+        for (let i = 0; i < AuctionBot.generatedAuctionCategories.length; i++) {
+            let auctionItemQuery = 'select *, (BaseSell * 8) as RRP from item_basic where aH in (' + AuctionBot.generatedAuctionCategories[i] + ') AND NoSale = 0 and BaseSell > 0;';
+            // console.log(AuctionBot.generatedAuctionCategories[i]);
+            // console.log(auctionItemQuery);
+
+            dataContent.query(auctionItemQuery)
+                .then(function (auctionItemAvailable) {
+                    AuctionBot.stockAuctionHouse(auctionItemAvailable);
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+
+        }
+    },
     stockAuctionHouse: function (auctionItemAvailable) {
+        let _self = this;
         let auctionList = [];
         let itemPicked = Math.floor(Math.random() * auctionItemAvailable.length);
         auctionList.push({
@@ -146,10 +148,15 @@ let AuctionBot = {
             date: Math.floor(new Date().getTime() / 1000), // this should match c++ time() object
             price: Math.floor(auctionItemAvailable[itemPicked].BaseSell * ((Math.random() * 5) + 2))
         });
+
         // console.log(auctionList[0]);
         dataContent.insert('auction_house', auctionList[0]);
 
         console.log(`${AuctionBot.playerName} has placed an item on the auction house.`);
+
+        setTimeout(function(){
+            _self.stockRefreshCycle();
+        }, 120000);
     }
 };
 

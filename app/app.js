@@ -74,7 +74,7 @@ app.listen(applicationStatus.serverPort, function () {
     debug('');
 });
 
-auctionBot.init(process.env.PLAYER_ID);
+auctionBot.init();
 
 // need to tidy this up...
 
@@ -88,10 +88,10 @@ auctionBot.init(process.env.PLAYER_ID);
  * set PLAYER_ID=
  */
 
-let playerId = process.env.PLAYER_ID || 10000;
+/*let playerId = process.env.PLAYER_ID || 10000;
 let playerProfile = {};
 let auctionList = [];
-let auctionItemAvailable = [];
+let auctionItemAvailable = [];*/
 
 /*dataContent.query('select *, (BaseSell * 8) as RRP from item_basic where BaseSell > 100 AND aH > 0 AND aH <= 32 AND NoSale = 0 and BaseSell > 0;')
     .then(function (result) {
