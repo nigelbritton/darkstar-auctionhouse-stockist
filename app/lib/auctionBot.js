@@ -13,60 +13,61 @@ const dataContent = require('./dataContent');
 let AuctionBot = {
     playerId: process.env.PLAYER_ID || 10000,
     playerName: 'PlayerUnknown',
+    auctionItemLimit: process.env.AUCTION_ITEM_LIMIT || 10000,
     generatedAuctionCategories: [],
     auctionLootCount: 10,
     auctionLootList: {
-        1: 100, // Hand to Hand
-        2: 100, // Daggers
-        3: 100, // Swords
-        4: 100, // Great Swords
-        5: 100, // Axes
-        6: 100, // Great Axes
-        7: 100, // Scythe
-        8: 100, // Polearms
-        9: 100, // Katana
-        10: 100, // Great Katana
-        11: 100, // Clubs
-        12: 100, // Staves
-        13: 100, // Ranged
+        1: 50, // Hand to Hand
+        2: 50, // Daggers
+        3: 50, // Swords
+        4: 50, // Great Swords
+        5: 50, // Axes
+        6: 50, // Great Axes
+        7: 50, // Scythe
+        8: 50, // Polearms
+        9: 50, // Katana
+        10: 50, // Great Katana
+        11: 50, // Clubs
+        12: 50, // Staves
+        13: 50, // Ranged
 
-        14: 50, // Instruments
-        48: 50, // Pet Items
-        47: 10, // Fishing Gear
+        14: 25, // Instruments
+        48: 25, // Pet Items
+        47: 25, // Fishing Gear
         15: 50, // Ammunition
         62: 10, // Grips
 
-        16: 100, // Shields
-        17: 100, // Head
-        22: 100, // Neck
-        18: 100, // Body
-        19: 100, // Hands
-        23: 100, // Waist
-        20: 100, // Legs
-        21: 100, // Feet
-        26: 100, // Back
-        24: 100, // Earrings
-        25: 100, // Rings
+        16: 50, // Shields
+        17: 50, // Head
+        22: 50, // Neck
+        18: 50, // Body
+        19: 50, // Hands
+        23: 50, // Waist
+        20: 50, // Legs
+        21: 50, // Feet
+        26: 50, // Back
+        24: 50, // Earrings
+        25: 50, // Rings
 
-        28: 75, // White Mage
-        29: 75, // Black Mage
-        32: 75, // Songs
-        31: 75, // Ninjutsu
-        30: 75, // Summoning
-        60: 75, // Dice
+        28: 50, // White Mage
+        29: 50, // Black Mage
+        32: 50, // Songs
+        31: 50, // Ninjutsu
+        30: 50, // Summoning
+        60: 50, // Dice
 
         33: 50, // Medicines
 
         34: 10, // Furnishings
 
-        44: 25, // Alchemy
-        63: 25, // Alchemy 2
-        43: 25, // Woodworking
-        42: 25, // Bonecraft
-        41: 25, // Leathercraft
-        40: 25, // Clothcraft
-        39: 25, // Goldsmith
-        38: 25, // Smithing
+        44: 65, // Alchemy
+        63: 65, // Alchemy 2
+        43: 65, // Woodworking
+        42: 65, // Bonecraft
+        41: 65, // Leathercraft
+        40: 65, // Clothcraft
+        39: 65, // Goldsmith
+        38: 65, // Smithing
 
         52: 20, // Meat and Eggs
         53: 20, // Seafood
@@ -75,7 +76,7 @@ let AuctionBot = {
         56: 20, // Bread and Rice
         57: 20, // Sweets
         58: 20, // Drinks
-        59: 50, // Ingredients
+        59: 75, // Ingredients
         51: 10, // Fish
 
         35: 15, // Crystals
@@ -99,14 +100,38 @@ let AuctionBot = {
                 // console.log(AuctionBot.playerName);
             })
             .then(function () {
-                _self.stockRefreshCycle();
+                AuctionBot.stockRefreshCycle();
             })
             .catch(function (err) {
                 console.log(err);
             });
     },
     stockRefreshCycle: function () {
+        let auctionItemLimitReached = false;
+
+        dataContent.query('select count(*) as item_count from auction_house where sell_date = 0 and seller = ' +  + parseInt(AuctionBot.playerId) + ';')
+            .then(function (result) {
+                if (result.length > 0) {
+                    if (result[0].item_count >= AuctionBot.auctionItemLimit) { auctionItemLimitReached = true; }
+                }
+            })
+            .then(function () {
+                if (auctionItemLimitReached === false) {
+                    AuctionBot.generateStock();
+                } else {
+                    console.log(`${AuctionBot.playerName} did not place any items on the auction house. ` + new Date().toISOString());
+                    setTimeout(function(){
+                        AuctionBot.stockRefreshCycle();
+                    }, 120000);
+                }
+            })
+            .catch(function (err) {
+                console.log(err);
+            });
+    },
+    generateStock: function () {
         let lootGenerated = [];
+
         for (let loot in AuctionBot.auctionLootList) {
             for (let i = 0; i < AuctionBot.auctionLootList[loot]; i++) {
                 lootGenerated.push(loot);
@@ -133,30 +158,30 @@ let AuctionBot = {
                 .catch(function (err) {
                     console.log(err);
                 });
-
         }
+
+        setTimeout(function(){
+            AuctionBot.stockRefreshCycle();
+        }, 120000);
     },
     stockAuctionHouse: function (auctionItemAvailable) {
         let _self = this;
         let auctionList = [];
         let itemPicked = Math.floor(Math.random() * auctionItemAvailable.length);
+        let markUpValue = (auctionItemAvailable[itemPicked].stackSize == 1 ? 5 : 2); // single vs stacked
         auctionList.push({
             itemid: auctionItemAvailable[itemPicked].itemid,
             stack: (auctionItemAvailable[itemPicked].stackSize == 1 ? 0 : auctionItemAvailable[itemPicked].stackSize),
             seller: AuctionBot.playerId,
             seller_name: AuctionBot.playerName,
             date: Math.floor(new Date().getTime() / 1000), // this should match c++ time() object
-            price: Math.floor(auctionItemAvailable[itemPicked].BaseSell * ((Math.random() * 5) + 2))
+            price: Math.floor((auctionItemAvailable[itemPicked].BaseSell * auctionItemAvailable[itemPicked].stackSize) * ((Math.random() * markUpValue) + 1))
         });
 
         // console.log(auctionList[0]);
         dataContent.insert('auction_house', auctionList[0]);
 
-        console.log(`${AuctionBot.playerName} has placed an item on the auction house.`);
-
-        setTimeout(function(){
-            _self.stockRefreshCycle();
-        }, 120000);
+        console.log(`${AuctionBot.playerName} has placed an item on the auction house. ` + new Date().toISOString());
     }
 };
 
