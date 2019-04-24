@@ -100,7 +100,20 @@ let AuctionBot = {
                 // console.log(AuctionBot.playerName);
             })
             .then(function () {
+                AuctionBot.flushDeliveryBox();
                 AuctionBot.stockRefreshCycle();
+            })
+            .catch(function (err) {
+                console.log(err);
+            });
+    },
+    flushDeliveryBox: function () {
+        dataContent.query('DELETE FROM delivery_box WHERE itemid <> 65535 AND senderid = 0 AND charid = ' + parseInt(AuctionBot.playerId) + ';')
+            .then(function () {
+                console.log(`${AuctionBot.playerName} has emptied the delivery box. ` + new Date().toISOString());
+                setTimeout(function(){
+                    AuctionBot.flushDeliveryBox();
+                }, 600000);
             })
             .catch(function (err) {
                 console.log(err);
