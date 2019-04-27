@@ -181,10 +181,11 @@ let AuctionBot = {
         let _self = this;
         let auctionList = [];
         let itemPicked = Math.floor(Math.random() * auctionItemAvailable.length);
-        let markUpValue = (auctionItemAvailable[itemPicked].stackSize == 1 ? 5 : 2); // single vs stacked
+        let markUpValue = 4;
+        let sellAsStack = ( auctionItemAvailable[itemPicked].stackSize == 1 ? 0 : Math.round(Math.random()) );
         auctionList.push({
             itemid: auctionItemAvailable[itemPicked].itemid,
-            stack: (auctionItemAvailable[itemPicked].stackSize == 1 ? 0 : auctionItemAvailable[itemPicked].stackSize),
+            stack: sellAsStack,
             seller: AuctionBot.playerId,
             seller_name: AuctionBot.playerName,
             date: Math.floor(new Date().getTime() / 1000), // this should match c++ time() object
