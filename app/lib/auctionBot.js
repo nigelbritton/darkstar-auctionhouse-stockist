@@ -71,13 +71,13 @@ let AuctionBot = {
 
         52: 20, // Meat and Eggs
         53: 20, // Seafood
-        54: 20, // Vegetables
+        54: 150, // Vegetables
         55: 20, // Soups
         56: 20, // Bread and Rice
         57: 20, // Sweets
         58: 20, // Drinks
-        59: 75, // Ingredients
-        51: 10, // Fish
+        59: 200, // Ingredients
+        51: 75, // Fish
 
         35: 15, // Crystals
 
@@ -181,8 +181,8 @@ let AuctionBot = {
         let _self = this;
         let auctionList = [];
         let itemPicked = Math.floor(Math.random() * auctionItemAvailable.length);
-        let markUpValue = 4;
-        let sellAsStack = ( auctionItemAvailable[itemPicked].stackSize == 1 ? 0 : Math.round(Math.random()) );
+        let markUpValue = 2;
+        let sellAsStack = ( auctionItemAvailable[itemPicked].stackSize == 1 ? 0 : (Math.round(Math.random() * 100) > 75 ? 0 : 1) );
         auctionList.push({
             itemid: auctionItemAvailable[itemPicked].itemid,
             stack: sellAsStack,
