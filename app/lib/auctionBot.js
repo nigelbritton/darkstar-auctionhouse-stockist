@@ -181,15 +181,22 @@ let AuctionBot = {
         let _self = this;
         let auctionList = [];
         let itemPicked = Math.floor(Math.random() * auctionItemAvailable.length);
-        let markUpValue = 2;
+        let markUpValue = (Math.random() * 2) + 1;
         let sellAsStack = ( auctionItemAvailable[itemPicked].stackSize == 1 ? 0 : (Math.round(Math.random() * 100) > 75 ? 0 : 1) );
+
+        if (auctionItemAvailable[itemPicked].flags >= 32000) {
+            markUpValue += ((Math.random() * 4) + 6);
+        } else if (auctionItemAvailable[itemPicked].name.indexOf('+1') > -1) {
+            markUpValue += ((Math.random() * 2) + 1);
+        }
+
         auctionList.push({
             itemid: auctionItemAvailable[itemPicked].itemid,
             stack: sellAsStack,
             seller: AuctionBot.playerId,
             seller_name: AuctionBot.playerName,
             date: Math.floor(new Date().getTime() / 1000), // this should match c++ time() object
-            price: Math.floor((auctionItemAvailable[itemPicked].BaseSell * auctionItemAvailable[itemPicked].stackSize) * ((Math.random() * markUpValue) + 1))
+            price: Math.floor((auctionItemAvailable[itemPicked].BaseSell * auctionItemAvailable[itemPicked].stackSize) * markUpValue)
         });
 
         // console.log(auctionList[0]);

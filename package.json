@@ -1,6 +1,6 @@
 {
     "name": "darkstar-auctionhouse-stockist",
-    "version": "0.0.20190417",
+    "version": "0.0.20190526",
     "description": "",
     "main": "app/server.js",
     "scripts": {
