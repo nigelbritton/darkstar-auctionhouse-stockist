@@ -175,9 +175,13 @@ let AuctionBot = {
                     // AuctionBot.updateAuctionItemListing(randomAuctionListing.id, randomAuctionListing.price);
                     // dataContent.insert('delivery_box', deliveryItem);
 
+                    console.log(`PlayerUnknownBot purchased an item from the auction house. ` + new Date().toISOString());
+
                     setTimeout(function () {
                         AuctionBot.stockPurchaseCycle();
                     }, 120000);
+                } else {
+                    console.log(`PlayerUnknownBot could not find anything to purchased from the auction house. ` + new Date().toISOString());
                 }
             })
             .catch(function (err) {
