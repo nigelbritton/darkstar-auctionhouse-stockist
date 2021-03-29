@@ -157,7 +157,6 @@ let AuctionBot = {
                         itemid: 65535, // gil itemid
                         itemsubid: 0,
                         quantity: 1, // amount
-                        extra: NULL,
                         senderid: 0,
                         sender: 'AH-Jeuno',
                         received: 0,
