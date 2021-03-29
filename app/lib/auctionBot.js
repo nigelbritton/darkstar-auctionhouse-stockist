@@ -109,7 +109,7 @@ let AuctionBot = {
             });
     },
     flushDeliveryBox: function () {
-        dataContent.query('DELETE FROM delivery_box WHERE itemid <> 65535 AND senderid = 0 AND charid = ' + parseInt(AuctionBot.playerId) + ';')
+        dataContent.query('DELETE FROM delivery_box WHERE senderid = 0 AND charid = ' + parseInt(AuctionBot.playerId) + ';')
             .then(function () {
                 console.log(`${AuctionBot.playerName} has emptied the delivery box. ` + new Date().toISOString());
                 setTimeout(function () {
