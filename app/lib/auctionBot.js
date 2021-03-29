@@ -144,7 +144,8 @@ let AuctionBot = {
             });
     },
     stockPurchaseCycle: function () {
-        let auctionItemQuery = 'select auction_house.id, auction_house.itemid, auction_house.stack, auction_house.seller, auction_house.seller_name, item_basic.name, seller, price, stackSize, (BaseSell * stackSize) as total_rrp from auction_house join item_basic on auction_house.itemid = item_basic.itemid where sell_date = 0 and price <= (BaseSell * stackSize) and seller <> ' + parseInt(AuctionBot.playerId) + ' limit 1000;';
+        // let auctionItemQuery = 'select auction_house.id, auction_house.itemid, auction_house.stack, auction_house.seller, auction_house.seller_name, item_basic.name, seller, price, stackSize, BaseSell as total_rrp from auction_house join item_basic on auction_house.itemid = item_basic.itemid where sell_date = 0 and ((price <= (BaseSell * stackSize) and stackSize > 1) or (price <= (BaseSell * stackSize) and stackSize = 1)) and seller <> ' + parseInt(AuctionBot.playerId) + ' limit 1000;';
+        let auctionItemQuery = 'select auction_house.id, auction_house.itemid, auction_house.stack, auction_house.seller, auction_house.seller_name, item_basic.name, seller, price, stackSize, BaseSell, (BaseSell * stackSize) as BaseSell_Stack from auction_house join item_basic on auction_house.itemid = item_basic.itemid where sell_date = 0 and seller <> ' + parseInt(AuctionBot.playerId) + ' limit 1000;';
         dataContent.query(auctionItemQuery)
             .then(function (result) {
                 if (result.length > 0) {
@@ -163,29 +164,43 @@ let AuctionBot = {
                         sent: 0
                     };
                     let itemPicked = Math.floor(Math.random() * result.length);
-                    const randomAuctionListing = result[itemPicked];
+                    let randomAuctionListing = result[itemPicked];
+                    let priceSingle = randomAuctionListing.BaseSell;
+                    let priceStack = randomAuctionListing.BaseSell_Stack;
+                    let priceBid = 0;
 
-                    deliveryItem.charid = randomAuctionListing.seller;
-                    deliveryItem.charname = randomAuctionListing.seller_name;
-                    deliveryItem.quantity = randomAuctionListing.price;
+                    if (randomAuctionListing.stack == 0) {
+                        priceBid = Math.floor(priceSingle * ((Math.random() * 5) + 1));
+                    } else if (randomAuctionListing.stack == 1) {
+                        priceBid = Math.floor(priceStack * ((Math.random() * 5) + 5));
+                    }
 
-                    console.log('stockPurchaseCycle: ', randomAuctionListing);
-                    console.log('stockPurchaseCycle: ', deliveryItem);
+                    if (priceBid >= randomAuctionListing.price) {
+                        deliveryItem.charid = randomAuctionListing.seller;
+                        deliveryItem.charname = randomAuctionListing.seller_name;
+                        deliveryItem.quantity = randomAuctionListing.priceBid;
 
-                    // AuctionBot.updateAuctionItemListing(randomAuctionListing.id, randomAuctionListing.price);
-                    // dataContent.insert('delivery_box', deliveryItem);
+                        console.log('stockPurchaseCycle: ', randomAuctionListing);
+                        console.log('stockPurchaseCycle: ', deliveryItem);
 
-                    console.log(`PlayerUnknownBot purchased an item from the auction house. ` + new Date().toISOString());
+                        // AuctionBot.updateAuctionItemListing(randomAuctionListing.id, randomAuctionListing.price);
+                        // dataContent.insert('delivery_box', deliveryItem);
+
+                        console.log(`PlayerUnknownBot purchased an item from the auction house. ` + new Date().toISOString());
+
+                    } else {
+                        console.log(`PlayerUnknownBot failed to bid on an auction item. ` + new Date().toISOString());
+                    }
 
                     setTimeout(function () {
                         AuctionBot.stockPurchaseCycle();
-                    }, 120000);
+                    }, 60000);
                 } else {
                     console.log(`PlayerUnknownBot could not find anything to purchased from the auction house. ` + new Date().toISOString());
 
                     setTimeout(function () {
                         AuctionBot.stockPurchaseCycle();
-                    }, 120000);
+                    }, 60000);
                 }
             })
             .catch(function (err) {
