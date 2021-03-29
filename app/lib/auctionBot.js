@@ -163,16 +163,16 @@ let AuctionBot = {
 
                     if (priceBid >= randomAuctionListing.price) {
                         AuctionBot.updateAuctionItemListing(randomAuctionListing.id, priceBid);
-                        console.log(`PlayerUnknownBot purchased an item from the auction house. ` + new Date().toISOString());
+                        console.log(`${AuctionBot.playerName} purchased an item from the auction house. ` + new Date().toISOString());
                     } else {
-                        console.log(`PlayerUnknownBot failed to bid on an auction item. ` + new Date().toISOString());
+                        console.log(`${AuctionBot.playerName} failed to bid on an auction item. ` + new Date().toISOString());
                     }
 
                     setTimeout(function () {
                         AuctionBot.stockPurchaseCycle();
                     }, 30000);
                 } else {
-                    console.log(`PlayerUnknownBot could not find anything to purchased from the auction house. ` + new Date().toISOString());
+                    console.log(`${AuctionBot.playerName} could not find anything to purchased from the auction house. ` + new Date().toISOString());
 
                     setTimeout(function () {
                         AuctionBot.stockPurchaseCycle();
@@ -187,7 +187,7 @@ let AuctionBot = {
         const currentDate = Math.floor(new Date().getTime() / 1000);
         dataContent.update('auction_house',
             [
-                { field: 'buyer_name', value: 'PlayerUnknown' },
+                { field: 'buyer_name', value: AuctionBot.playerName },
                 { field: 'sale', value: salePrice },
                 { field: 'sell_date', value: currentDate }
             ],
