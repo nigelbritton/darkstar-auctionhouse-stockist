@@ -60,24 +60,24 @@ let AuctionBot = {
 
         34: 10, // Furnishings
 
-        44: 65, // Alchemy
-        63: 65, // Alchemy 2
-        43: 65, // Woodworking
-        42: 65, // Bonecraft
-        41: 65, // Leathercraft
-        40: 65, // Clothcraft
-        39: 65, // Goldsmith
-        38: 65, // Smithing
+        44: 35, // Alchemy
+        63: 35, // Alchemy 2
+        43: 35, // Woodworking
+        42: 35, // Bonecraft
+        41: 35, // Leathercraft
+        40: 35, // Clothcraft
+        39: 35, // Goldsmith
+        38: 35, // Smithing
 
-        52: 20, // Meat and Eggs
-        53: 20, // Seafood
-        54: 150, // Vegetables
-        55: 20, // Soups
-        56: 20, // Bread and Rice
-        57: 20, // Sweets
-        58: 20, // Drinks
-        59: 200, // Ingredients
-        51: 75, // Fish
+        52: 10, // Meat and Eggs
+        53: 10, // Seafood
+        54: 10, // Vegetables
+        55: 10, // Soups
+        56: 10, // Bread and Rice
+        57: 10, // Sweets
+        58: 10, // Drinks
+        59: 25, // Ingredients
+        51: 25, // Fish
 
         35: 15, // Crystals
 
@@ -86,7 +86,7 @@ let AuctionBot = {
         65: 10, // Misc 3 ??
         50: 10, // Beast-Made
         36: 10, // Cards
-        49: 50, // Ninja Tools
+        49: 10, // Ninja Tools
         37: 10, // Cursed Items
         61: 25, // Automatons
     },
@@ -102,6 +102,7 @@ let AuctionBot = {
             .then(function () {
                 AuctionBot.flushDeliveryBox();
                 AuctionBot.stockRefreshCycle();
+                AuctionBot.stockPurchaseCycle();
             })
             .catch(function (err) {
                 console.log(err);
@@ -111,7 +112,7 @@ let AuctionBot = {
         dataContent.query('DELETE FROM delivery_box WHERE itemid <> 65535 AND senderid = 0 AND charid = ' + parseInt(AuctionBot.playerId) + ';')
             .then(function () {
                 console.log(`${AuctionBot.playerName} has emptied the delivery box. ` + new Date().toISOString());
-                setTimeout(function(){
+                setTimeout(function () {
                     AuctionBot.flushDeliveryBox();
                 }, 600000);
             })
@@ -122,7 +123,7 @@ let AuctionBot = {
     stockRefreshCycle: function () {
         let auctionItemLimitReached = false;
 
-        dataContent.query('select count(*) as item_count from auction_house where sell_date = 0 and seller = ' +  + parseInt(AuctionBot.playerId) + ';')
+        dataContent.query('select count(*) as item_count from auction_house where sell_date = 0 and seller = ' + + parseInt(AuctionBot.playerId) + ';')
             .then(function (result) {
                 if (result.length > 0) {
                     if (result[0].item_count >= AuctionBot.auctionItemLimit) { auctionItemLimitReached = true; }
@@ -133,7 +134,7 @@ let AuctionBot = {
                     AuctionBot.generateStock();
                 } else {
                     console.log(`${AuctionBot.playerName} did not place any items on the auction house. ` + new Date().toISOString());
-                    setTimeout(function(){
+                    setTimeout(function () {
                         AuctionBot.stockRefreshCycle();
                     }, 120000);
                 }
@@ -141,6 +142,60 @@ let AuctionBot = {
             .catch(function (err) {
                 console.log(err);
             });
+    },
+    stockPurchaseCycle: function () {
+        let auctionItemQuery = 'select auction_house.id, auction_house.itemid, auction_house.stack, auction_house.seller, auction_house.seller_name, item_basic.name, seller, price, stackSize, (BaseSell * stackSize) as total_rrp from auction_house join item_basic on auction_house.itemid = item_basic.itemid where sell_date = 0 and price <= (BaseSell * stackSize) and seller <> ' + parseInt(AuctionBot.playerId) + ' limit 1000;';
+        dataContent.query(auctionItemQuery)
+            .then(function (result) {
+                if (result.length > 0) {
+                    let deliveryItem = {
+                        charid: 0, // charid
+                        charname: '', // charname
+                        box: 1,
+                        slot: 0,
+                        itemid: 65535, // gil itemid
+                        itemsubid: 0,
+                        quantity: 1, // amount
+                        extra: NULL,
+                        senderid: 0,
+                        sender: 'AH-Jeuno',
+                        received: 0,
+                        sent: 0
+                    };
+                    let itemPicked = Math.floor(Math.random() * result.length);
+                    const randomAuctionListing = result[itemPicked];
+
+                    deliveryItem.charid = randomAuctionListing.seller;
+                    deliveryItem.charname = randomAuctionListing.seller_name;
+                    deliveryItem.quantity = randomAuctionListing.price;
+
+                    console.log('stockPurchaseCycle: ', randomAuctionListing);
+                    console.log('stockPurchaseCycle: ', deliveryItem);
+
+                    // AuctionBot.updateAuctionItemListing(randomAuctionListing.id, randomAuctionListing.price);
+                    // dataContent.insert('delivery_box', deliveryItem);
+
+                    setTimeout(function () {
+                        AuctionBot.stockPurchaseCycle();
+                    }, 120000);
+                }
+            })
+            .catch(function (err) {
+                console.log(err);
+            });
+    },
+    updateAuctionItemListing: function (auctionItemId, salePrice) {
+        const currentDate = Math.floor(new Date().getTime() / 1000);
+        dataContent.update('auction_house',
+            [
+                { field: 'buyer_name', value: 'PlayerUnknownBot' },
+                { field: 'sale', value: salePrice },
+                { field: 'sell_date', value: currentDate }
+            ],
+            [
+                { field: 'id', value: auctionItemId }
+            ]
+        );
     },
     generateStock: function () {
         let lootGenerated = [];
@@ -173,7 +228,7 @@ let AuctionBot = {
                 });
         }
 
-        setTimeout(function(){
+        setTimeout(function () {
             AuctionBot.stockRefreshCycle();
         }, 120000);
     },
@@ -182,7 +237,7 @@ let AuctionBot = {
         let auctionList = [];
         let itemPicked = Math.floor(Math.random() * auctionItemAvailable.length);
         let markUpValue = (Math.random() * 2) + 1;
-        let sellAsStack = ( auctionItemAvailable[itemPicked].stackSize == 1 ? 0 : (Math.round(Math.random() * 100) > 75 ? 0 : 1) );
+        let sellAsStack = (auctionItemAvailable[itemPicked].stackSize == 1 ? 0 : (Math.round(Math.random() * 100) > 75 ? 0 : 1));
 
         if (auctionItemAvailable[itemPicked].flags >= 32000) {
             markUpValue += ((Math.random() * 4) + 6);
