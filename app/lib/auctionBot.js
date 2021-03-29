@@ -177,7 +177,7 @@ let AuctionBot = {
                     if (priceBid >= randomAuctionListing.price) {
                         deliveryItem.charid = randomAuctionListing.seller;
                         deliveryItem.charname = randomAuctionListing.seller_name;
-                        deliveryItem.quantity = randomAuctionListing.priceBid;
+                        deliveryItem.quantity = priceBid;
 
                         console.log('stockPurchaseCycle: ', randomAuctionListing);
                         console.log('stockPurchaseCycle: ', deliveryItem);
@@ -186,7 +186,6 @@ let AuctionBot = {
                         // dataContent.insert('delivery_box', deliveryItem);
 
                         console.log(`PlayerUnknownBot purchased an item from the auction house. ` + new Date().toISOString());
-
                     } else {
                         console.log(`PlayerUnknownBot failed to bid on an auction item. ` + new Date().toISOString());
                     }
