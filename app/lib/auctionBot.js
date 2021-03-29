@@ -182,6 +182,10 @@ let AuctionBot = {
                     }, 120000);
                 } else {
                     console.log(`PlayerUnknownBot could not find anything to purchased from the auction house. ` + new Date().toISOString());
+
+                    setTimeout(function () {
+                        AuctionBot.stockPurchaseCycle();
+                    }, 120000);
                 }
             })
             .catch(function (err) {
