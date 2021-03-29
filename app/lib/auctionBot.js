@@ -149,19 +149,6 @@ let AuctionBot = {
         dataContent.query(auctionItemQuery)
             .then(function (result) {
                 if (result.length > 0) {
-                    let deliveryItem = {
-                        charid: 0, // charid
-                        charname: '', // charname
-                        box: 1,
-                        slot: 0,
-                        itemid: 65535, // gil itemid
-                        itemsubid: 0,
-                        quantity: 1, // amount
-                        senderid: 0,
-                        sender: 'AH-Jeuno',
-                        received: 0,
-                        sent: 0
-                    };
                     let itemPicked = Math.floor(Math.random() * result.length);
                     let randomAuctionListing = result[itemPicked];
                     let priceSingle = randomAuctionListing.BaseSell;
@@ -175,16 +162,7 @@ let AuctionBot = {
                     }
 
                     if (priceBid >= randomAuctionListing.price) {
-                        deliveryItem.charid = randomAuctionListing.seller;
-                        deliveryItem.charname = randomAuctionListing.seller_name;
-                        deliveryItem.quantity = priceBid;
-
-                        console.log('stockPurchaseCycle: ', randomAuctionListing);
-                        console.log('stockPurchaseCycle: ', deliveryItem);
-
-                        AuctionBot.updateAuctionItemListing(randomAuctionListing.id, randomAuctionListing.price);
-                        dataContent.insert('delivery_box', deliveryItem);
-
+                        AuctionBot.updateAuctionItemListing(randomAuctionListing.id, priceBid);
                         console.log(`PlayerUnknownBot purchased an item from the auction house. ` + new Date().toISOString());
                     } else {
                         console.log(`PlayerUnknownBot failed to bid on an auction item. ` + new Date().toISOString());
@@ -209,7 +187,7 @@ let AuctionBot = {
         const currentDate = Math.floor(new Date().getTime() / 1000);
         dataContent.update('auction_house',
             [
-                { field: 'buyer_name', value: 'PlayerUnknownBot' },
+                { field: 'buyer_name', value: 'PlayerUnknown' },
                 { field: 'sale', value: salePrice },
                 { field: 'sell_date', value: currentDate }
             ],
