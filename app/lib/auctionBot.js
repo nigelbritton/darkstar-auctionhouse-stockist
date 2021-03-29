@@ -182,8 +182,8 @@ let AuctionBot = {
                         console.log('stockPurchaseCycle: ', randomAuctionListing);
                         console.log('stockPurchaseCycle: ', deliveryItem);
 
-                        // AuctionBot.updateAuctionItemListing(randomAuctionListing.id, randomAuctionListing.price);
-                        // dataContent.insert('delivery_box', deliveryItem);
+                        AuctionBot.updateAuctionItemListing(randomAuctionListing.id, randomAuctionListing.price);
+                        dataContent.insert('delivery_box', deliveryItem);
 
                         console.log(`PlayerUnknownBot purchased an item from the auction house. ` + new Date().toISOString());
                     } else {
@@ -192,13 +192,13 @@ let AuctionBot = {
 
                     setTimeout(function () {
                         AuctionBot.stockPurchaseCycle();
-                    }, 60000);
+                    }, 30000);
                 } else {
                     console.log(`PlayerUnknownBot could not find anything to purchased from the auction house. ` + new Date().toISOString());
 
                     setTimeout(function () {
                         AuctionBot.stockPurchaseCycle();
-                    }, 60000);
+                    }, 30000);
                 }
             })
             .catch(function (err) {
