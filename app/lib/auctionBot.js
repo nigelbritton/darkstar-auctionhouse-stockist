@@ -216,6 +216,10 @@ let AuctionBot = {
                                 {
                                     field: 'slot',
                                     value: newSlotId
+                                },
+                                {
+                                    field: 'box',
+                                    value: newBoxId
                                 }
                             ],
                             [
@@ -224,7 +228,7 @@ let AuctionBot = {
                                     value: result.charid
                                 }, {
                                     field: 'box',
-                                    value: newBoxId
+                                    value: result.box
                                 }, {
                                     field: 'slot',
                                     value: result.slot
