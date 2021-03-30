@@ -201,20 +201,21 @@ let AuctionBot = {
         dataContent.query('select * from delivery_box where charid <> ' + parseInt(AuctionBot.playerId) + ' order by charid, box, slot;')
             .then(function (results) {
                 if (results) {
-                    let newIndexId = 0;
+                    let newBoxId = 2;
+                    let newSlotId = 0;
                     let lastCharId = 0;
                     for (let index = 0; index < results.length; index++) {
                         const result = results[index];
                         // update delivery_box set slot = 4 where charid = 1 and box = 2 and slot = 13;
                         if (lastCharId !== parseInt(result.charid)) {
-                            newIndexId = 0;
+                            newSlotId = 0;
                             lastCharId = parseInt(result.charid);
                         }
                         dataContent.update('delivery_box',
                             [
                                 {
                                     field: 'slot',
-                                    value: newIndexId
+                                    value: newSlotId
                                 }
                             ],
                             [
@@ -223,14 +224,14 @@ let AuctionBot = {
                                     value: result.charid
                                 }, {
                                     field: 'box',
-                                    value: result.box
+                                    value: newBoxId
                                 }, {
                                     field: 'slot',
                                     value: result.slot
                                 }
                             ]
                         );
-                        newIndexId++;
+                        newSlotId++;
                     }
                     console.log(`Delivery box reordered. ` + new Date().toISOString());
                 }
