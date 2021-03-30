@@ -215,7 +215,7 @@ let AuctionBot = {
                             [
                                 {
                                     field: 'slot',
-                                    value: newSlotId
+                                    value: (result.charid == 2 || result.charid == 3 ? 1 : 2)
                                 },
                                 {
                                     field: 'box',
