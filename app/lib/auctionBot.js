@@ -246,7 +246,7 @@ let AuctionBot = {
 
         setTimeout(function () {
             AuctionBot.deliveryBoxCycle();
-        }, 35000);
+        }, 300000);
     },
     generateStock: function () {
         let lootGenerated = [];
