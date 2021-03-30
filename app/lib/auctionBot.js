@@ -103,6 +103,7 @@ let AuctionBot = {
                 AuctionBot.flushDeliveryBox();
                 AuctionBot.stockRefreshCycle();
                 AuctionBot.stockPurchaseCycle();
+                AuctionBot.deliveryBoxCycle();
             })
             .catch(function (err) {
                 console.log(err);
@@ -195,6 +196,52 @@ let AuctionBot = {
                 { field: 'id', value: auctionItemId }
             ]
         );
+    },
+    deliveryBoxCycle: function () {
+        dataContent.query('select * from delivery_box where charid <> ' + parseInt(AuctionBot.playerId) + ' order by charid, box, slot;')
+            .then(function (results) {
+                if (results) {
+                    let newIndexId = 0;
+                    let lastCharId = 0;
+                    for (let index = 0; index < results.length; index++) {
+                        const result = results[index];
+                        // update delivery_box set slot = 4 where charid = 1 and box = 2 and slot = 13;
+                        if (lastCharId !== parseInt(result.charid)) {
+                            newIndexId = 0;
+                            lastCharId = parseInt(result.charid);
+                        }
+                        dataContent.update('delivery_box',
+                            [
+                                {
+                                    field: 'slot',
+                                    value: newIndexId
+                                }
+                            ],
+                            [
+                                {
+                                    field: 'charid',
+                                    value: result.charid
+                                }, {
+                                    field: 'box',
+                                    value: result.box
+                                }, {
+                                    field: 'slot',
+                                    value: result.slot
+                                }
+                            ]
+                        );
+                        newIndexId++;
+                    }
+                    console.log(`Delivery box reordered. ` + new Date().toISOString());
+                }
+            })
+            .catch(function (error) {
+
+            });
+
+        setTimeout(function () {
+            AuctionBot.deliveryBoxCycle();
+        }, 35000);
     },
     generateStock: function () {
         let lootGenerated = [];
